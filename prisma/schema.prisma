@@ -11,4 +11,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Wallet {
+  id        String        @id @default(uuid()) @map("id")
+  currency  String        @map("currency")
+  balance   Int           @map("balance")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  transactions Transaction[]
+
+  @@map("wallets")
+}
+
+model Transaction {
+  id          String           @id @default(uuid()) @map("id")
+  walletId    String           @map("wallet_id")
+  type        TransactionType  @map("type")
+  amount      Int              @map("amount")
+  reference   String?          @unique @map("reference")
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id])
+
+  @@index([walletId])
+  @@map("transactions")
+}
+
+enum TransactionType {
+  FUND
+  TRANSFER_IN
+  TRANSFER_OUT
+}
+
 
