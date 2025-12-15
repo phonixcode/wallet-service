@@ -1,61 +1,444 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This is a simple wallet service built with NestJS, TypeScript, Prisma, and SQLite.  
+**It supports:**
 
-## Project setup
+- Creating wallets
+- Funding wallets (with idempotency)
+- Transferring funds between wallets
+- Fetching wallet details and transaction history
+
+It is designed with atomic operations, ledger integrity, and basic idempotency, making it a strong foundation for more complex financial applications.
+
+## Tech Stack
+
+- **NestJS** – Framework for building scalable Node.js apps
+- **TypeScript** – Strongly typed JavaScript
+- **Prisma ORM** – Database access with custom output path
+- **SQLite** – Simple relational database for local development/testing
+- **Jest & Supertest** – Unit and e2e testing
+
+## Prerequisites
+
+- Node.js (v18 or higher recommended)
+- npm or yarn
+- Git
+
+## Setup Instructions
+
+### 1. Clone the Repository
 
 ```bash
-$ npm install
+git clone https://github.com/phonixcode/wallet-service.git
+cd wallet-service
 ```
 
-## Compile and run the project
+### 2. Install Dependencies
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+### 3. Set Up Environment Variables
+
+Create a `.env` file in the root directory:
 
 ```bash
-# unit tests
-$ npm run test
+DATABASE_URL="file:./prisma/database.sqlite"
+```
 
-# e2e tests
-$ npm run test:e2e
+> **Note:** The database file will be created automatically when you run migrations.
 
-# test coverage
-$ npm run test:cov
+### 4. Generate Prisma Client
+
+The Prisma client is generated to a custom output path (`generated/prisma`). Generate it with:
+
+```bash
+npx prisma generate
+```
+
+### 5. Run Database Migrations
+
+```bash
+npx prisma migrate deploy
+```
+
+Or if you need to create a new migration:
+
+```bash
+npx prisma migrate dev
+```
+
+### 6. Start the Application
+
+```bash
+# Development mode (with watch)
+npm run start:dev
+
+# Production mode
+npm run build
+npm run start:prod
+```
+
+The application will start on `http://localhost:3000` by default.
+
+## Running Tests
+
+### Unit Tests
+
+```bash
+npm run test
+```
+
+**Test Results:**
+```
+PASS src/app.controller.spec.ts
+PASS src/wallet/wallet.service.spec.ts
+PASS src/wallet/wallet.controller.spec.ts
+
+Test Suites: 3 passed, 3 total
+Tests:       8 passed, 8 total
+Snapshots:   0 total
+Time:        ~2.8s
+```
+
+### E2E Tests
+
+```bash
+npm run test:e2e
+```
+
+**Test Results:**
+```
+PASS test/app.e2e-spec.ts
+PASS test/wallet/wallet.e2e-spec.ts
+
+Test Suites: 2 passed, 2 total
+Tests:       7 passed, 7 total
+Snapshots:   0 total
+Time:        ~2.3s
+```
+
+### Test Coverage
+
+```bash
+npm run test:cov
+```
+
+## API Endpoints
+
+### Base URL
+```
+http://localhost:3000
+```
+
+### 1. Create Wallet
+
+**Endpoint:** `POST /wallets`
+
+**Request Body:**
+```json
+{
+  "currency": "USD"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "currency": "USD",
+  "balance": 0,
+  "createdAt": "2025-12-15T19:37:45.000Z",
+  "updatedAt": "2025-12-15T19:37:45.000Z"
+}
+```
+
+**Example using cURL:**
+```bash
+curl -X POST http://localhost:3000/wallets \
+  -H "Content-Type: application/json" \
+  -d '{"currency": "USD"}'
+```
+
+---
+
+### 2. Fund Wallet
+
+**Endpoint:** `POST /wallets/:id/fund`
+
+**Request Body:**
+```json
+{
+  "amount": 2000,
+  "reference": "fund-001"
+}
+```
+
+**Parameters:**
+- `amount` (required): Amount in cents (integer, minimum 1)
+- `reference` (optional): Idempotency key - prevents duplicate funding if the same reference is used
+
+**Response (201 Created):**
+```json
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "currency": "USD",
+  "balance": 2000,
+  "createdAt": "2025-12-15T19:37:45.000Z",
+  "updatedAt": "2025-12-15T19:40:00.000Z"
+}
+```
+
+**Example using cURL:**
+```bash
+curl -X POST http://localhost:3000/wallets/a1b2c3d4-e5f6-7890-abcd-ef1234567890/fund \
+  -H "Content-Type: application/json" \
+  -d '{"amount": 2000, "reference": "fund-001"}'
+```
+
+**Idempotency:** If you call this endpoint again with the same `reference`, it will return the same wallet state without creating a duplicate transaction.
+
+---
+
+### 3. Transfer Between Wallets
+
+**Endpoint:** `POST /wallets/transfer`
+
+**Request Body:**
+```json
+{
+  "fromWalletId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "toWalletId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  "amount": 1500,
+  "reference": "tx-001"
+}
+```
+
+**Parameters:**
+- `fromWalletId` (required): UUID of the source wallet
+- `toWalletId` (required): UUID of the destination wallet
+- `amount` (required): Amount in cents (integer, minimum 1)
+- `reference` (optional): Idempotency key
+
+**Response (201 Created):**
+```json
+{
+  "status": "success",
+  "fromWalletId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "toWalletId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  "amount": 1500
+}
+```
+
+**Example using cURL:**
+```bash
+curl -X POST http://localhost:3000/wallets/transfer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fromWalletId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "toWalletId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "amount": 1500,
+    "reference": "tx-001"
+  }'
+```
+
+**Features:**
+- Prevents negative balances (returns `409 Conflict` if insufficient funds)
+- Prevents transfers to the same wallet (returns `400 Bad Request`)
+- Atomic operation - both debit and credit happen in a single transaction
+- Creates ledger entries for both wallets (TRANSFER_OUT and TRANSFER_IN)
+- Idempotent if `reference` is provided
+
+**Error Responses:**
+
+**Insufficient Balance (409 Conflict):**
+```json
+{
+  "statusCode": 409,
+  "message": "Insufficient balance",
+  "error": "Conflict"
+}
+```
+
+**Same Wallet Transfer (400 Bad Request):**
+```json
+{
+  "statusCode": 400,
+  "message": "Cannot transfer to same wallet",
+  "error": "Bad Request"
+}
+```
+
+**Wallet Not Found (404 Not Found):**
+```json
+{
+  "statusCode": 404,
+  "message": "Wallet not found",
+  "error": "Not Found"
+}
+```
+
+---
+
+### 4. Fetch Wallet Details
+
+**Endpoint:** `GET /wallets/:id`
+
+**Response (200 OK):**
+```json
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "currency": "USD",
+  "balance": 500,
+  "createdAt": "2025-12-15T19:37:45.000Z",
+  "updatedAt": "2025-12-15T19:45:00.000Z",
+  "transactions": [
+    {
+      "id": "t1x2y3z4-a5b6-7890-cdef-123456789012",
+      "walletId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "type": "FUND",
+      "amount": 2000,
+      "reference": "fund-001",
+      "createdAt": "2025-12-15T19:40:00.000Z"
+    },
+    {
+      "id": "t2x3y4z5-b6c7-8901-def0-234567890123",
+      "walletId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "type": "TRANSFER_OUT",
+      "amount": 1500,
+      "reference": "tx-001-out",
+      "createdAt": "2025-12-15T19:45:00.000Z"
+    }
+  ]
+}
+```
+
+**Transaction Types:**
+- `FUND` - Money added to the wallet
+- `TRANSFER_IN` - Money received from another wallet
+- `TRANSFER_OUT` - Money sent to another wallet
+
+**Example using cURL:**
+```bash
+curl http://localhost:3000/wallets/a1b2c3d4-e5f6-7890-abcd-ef1234567890
+```
+
+**Error Response (404 Not Found):**
+```json
+{
+  "statusCode": 404,
+  "message": "Wallet not found",
+  "error": "Not Found"
+}
+```
+
+
+## Quick Start Example
+
+After setting up the project, here's a quick example of using the API:
+
+```bash
+# 1. Create a wallet
+WALLET_A=$(curl -s -X POST http://localhost:3000/wallets \
+  -H "Content-Type: application/json" \
+  -d '{"currency": "USD"}' | jq -r '.id')
+
+echo "Created Wallet A: $WALLET_A"
+
+# 2. Create another wallet
+WALLET_B=$(curl -s -X POST http://localhost:3000/wallets \
+  -H "Content-Type: application/json" \
+  -d '{"currency": "USD"}' | jq -r '.id')
+
+echo "Created Wallet B: $WALLET_B"
+
+# 3. Fund Wallet A
+curl -X POST http://localhost:3000/wallets/$WALLET_A/fund \
+  -H "Content-Type: application/json" \
+  -d '{"amount": 5000, "reference": "initial-fund"}'
+
+# 4. Transfer from Wallet A to Wallet B
+curl -X POST http://localhost:3000/wallets/transfer \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"fromWalletId\": \"$WALLET_A\",
+    \"toWalletId\": \"$WALLET_B\",
+    \"amount\": 2000,
+    \"reference\": \"transfer-001\"
+  }"
+
+# 5. Check Wallet A balance
+curl http://localhost:3000/wallets/$WALLET_A | jq '.balance'
+# Expected: 3000 (5000 - 2000)
+```
+
+## Key Features
+
+### Atomic Operations
+All wallet operations use database transactions to ensure data consistency. If any part of an operation fails, the entire operation is rolled back.
+
+### Idempotency
+Both funding and transfer operations support idempotency through the `reference` field. If you retry an operation with the same reference, it will return the existing result without creating duplicates.
+
+### Ledger Integrity
+Every transfer creates two transaction records:
+- `TRANSFER_OUT` for the sender
+- `TRANSFER_IN` for the receiver
+
+This ensures a complete audit trail of all wallet movements.
+
+### Validation
+- Currency must be "USD" (extensible to other currencies)
+- Amounts must be positive integers (in cents)
+- Wallet IDs must be valid UUIDs
+- Prevents negative balances
+- Prevents transfers to the same wallet
+
+## Database Management
+
+### View Database Schema
+
+```bash
+npx prisma studio
+```
+
+This opens Prisma Studio at `http://localhost:5555` where you can view and edit your database.
+
+### Reset Database
+
+```bash
+npx prisma migrate reset
+```
+
+**Warning:** This will delete all data in your database.
+
+### Create New Migration
+
+After modifying `prisma/schema.prisma`:
+
+```bash
+npx prisma migrate dev --name your_migration_name
+```
+
+## Troubleshooting
+
+### Prisma Client Not Found
+If you see errors about Prisma client, make sure you've generated it:
+```bash
+npx prisma generate
+```
+
+### Database Connection Issues
+Ensure your `.env` file has the correct `DATABASE_URL`:
+```
+DATABASE_URL="file:./prisma/database.sqlite"
+```
+
+### Port Already in Use
+If port 3000 is already in use, you can change it in `src/main.ts`:
+```typescript
+await app.listen(3001); // Change to your preferred port
 ```
 
 ## Deployment
