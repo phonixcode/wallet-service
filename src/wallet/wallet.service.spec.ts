@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { WalletService } from './wallet.service';
 import { PrismaService } from 'prisma/prisma.service';
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { TransactionType } from '../../generated/prisma';
+import { TransactionType } from '@prisma/client';
 
 describe('WalletService', () => {
   let service: WalletService;

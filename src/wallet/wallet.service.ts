@@ -4,7 +4,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
-import { TransactionType } from '../../generated/prisma';
+import { TransactionType } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
